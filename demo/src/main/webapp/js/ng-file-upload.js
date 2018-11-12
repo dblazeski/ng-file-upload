@@ -705,7 +705,7 @@ ngFileUpload.directive('ngfSelect', ['$parse', '$timeout', '$compile', 'Upload',
     }
 
     // safari on windows
-    return ua.indexOf('Chrome') === -1 && /.*Windows.*Safari.*/.test(ua);
+    return ua.indexOf('Chrome') === -1 && /(?=.*Windows)(?=.*Safari)(?!.*Chrome)/.test(ua);
   }
 
   function linkFileSelect(scope, elem, attr, ngModel, $parse, $timeout, $compile, upload) {
