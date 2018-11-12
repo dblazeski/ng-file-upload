@@ -619,8 +619,8 @@ ngFileUpload.service('Upload', ['$parse', '$timeout', '$compile', '$q', 'UploadE
         if (validateAfterResize) {
           upload.validate(allNewFiles, keep ? prevValidFiles.length : 0, ngModel, attr, scope)
             .then(function (validationResult) {
-              valids = validationResult.validsFiles;
-              invalids = validationResult.invalidsFiles;
+              valids = validationResult.validFiles;
+              invalids = validationResult.invalidFiles;
               updateModel();
             });
         } else {
@@ -1044,9 +1044,9 @@ ngFileUpload.directive('ngfSelect', ['$parse', '$timeout', '$compile', 'Upload',
       });
 
       if (disallowObjectUrl) {
-        p = file.$$ngfDataUrlPromise = deferred.promise;
+        p = file.$$ngfDataUrlPromise = deferred.promise.catch(angular.noop);
       } else {
-        p = file.$$ngfBlobUrlPromise = deferred.promise;
+        p = file.$$ngfBlobUrlPromise = deferred.promise.catch(angular.noop);
       }
       p['finally'](function () {
         delete file[disallowObjectUrl ? '$$ngfDataUrlPromise' : '$$ngfBlobUrlPromise'];
@@ -1658,7 +1658,7 @@ ngFileUpload.service('UploadValidate', ['UploadDataUrl', '$q', '$timeout', funct
       }
       upload.dataUrl(file).then(function (dataUrl) {
         var el = angular.element(file.type.indexOf('audio') === 0 ? '<audio>' : '<video>')
-          .attr('src', dataUrl).css('visibility', 'none').css('position', 'fixed');
+          .attr('src', dataUrl).css('visibility', 'hidden').css('position', 'fixed');
 
         function success() {
           var duration = el[0].duration;
@@ -1674,14 +1674,15 @@ ngFileUpload.service('UploadValidate', ['UploadDataUrl', '$q', '$timeout', funct
 
         el.on('loadedmetadata', success);
         el.on('error', error);
+        
         var count = 0;
-
         function checkLoadError() {
+          count++;
           $timeout(function () {
             if (el[0].parentNode) {
               if (el[0].duration) {
                 success();
-              } else if (count > 10) {
+              } else if (count++ > 10) {
                 error();
               } else {
                 checkLoadError();
